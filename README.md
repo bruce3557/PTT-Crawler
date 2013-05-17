@@ -8,4 +8,4 @@ This Python script fetches all posts from a given board on PTT and store the "nu
 
 ### Usage
 
-`python crawler PTTBOARDNAME`
+`python crawler.py PTTBOARDNAME`
