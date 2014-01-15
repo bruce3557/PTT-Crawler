@@ -8,6 +8,8 @@ import json
 
 
 board_name = sys.argv[1]
+start_page = int(sys.argv[2])
+end_page = int(sys.argv[3])
 
 page_url = lambda n: 'http://www.ptt.cc/bbs/' + board_name + '/index' + str(n) + '.html'
 post_url = lambda id: 'http://www.ptt.cc/bbs/' + board_name + '/' + id + '.html'
@@ -27,13 +29,12 @@ sys.stderr.write('Crawling "%s" ...\n' % board_name)
 print page_url(1)
 page = bs4.BeautifulSoup(urllib2.urlopen(page_url(1)).read())
 #num_pages = int(re.findall(' \d+ ', page.find(id='prodlist').find('h2').contents[-1])[0])
-num_pages = 1
-sys.stderr.write('Total number of pages: %d\n' % num_pages)
+sys.stderr.write('Total number of pages: %d\n' % (end_page - start_page + 1))
 
 ## a mapping from post_id to number of pushes
 num_pushes = dict()
 
-for n in xrange(1, num_pages + 1):
+for n in xrange(start_page, end_page + 1):
 
     try:
         page = bs4.BeautifulSoup(urllib2.urlopen(page_url(n)).read())
@@ -58,14 +59,13 @@ for n in xrange(1, num_pages + 1):
             sys.stderr.write('Error occured while fetching %s\n' % post_url(post_id))
             continue
 
+        if post.find(id='main-content') is None:  continue
         for content in post.find(id='main-content').contents:
             ## u'\u25c6' is the starting character in the 'source ip line',
             ## which for instance looks like "u'\u25c6' From: 111.253.164.108"
             if type(content) is bs4.element.NavigableString and content[0] != u'\u25c6':
                 post_file.write(content.encode('utf-8'))
-                print content.encode('utf-8')
         for push in post.find_all('div', 'push'):
-          print push.contents[2].contents[0].encode('utf-8')
           post_file.write(push.contents[1].contents[0].encode('utf-8') + push.contents[2].contents[0].encode('utf-8'))
 
         post_file.close()
